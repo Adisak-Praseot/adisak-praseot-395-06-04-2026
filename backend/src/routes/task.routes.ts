@@ -70,11 +70,11 @@ router.get('/', async (_req, res) => {
 router.get('/:id', async (req, res) => {
   try {
 
-    const id = Number(req.params.id)
+    const id = req.params.id
 
-    if (isNaN(id)) {
+    if (!id) {
       return res.status(400).json({
-        message: 'id ต้องเป็นตัวเลข'
+        message: 'id ต้องระบุ'
       })
     }
 
@@ -108,8 +108,14 @@ router.patch('/:id', async (req, res) => {
 
   try {
 
-    const id = Number(req.params.id)
+    const id = req.params.id
     const { title, description } = req.body
+
+    if (!id) {
+      return res.status(400).json({
+        message: 'id ต้องระบุ'
+      })
+    }
 
     const task = await prisma.task.update({
       where: { id },
@@ -146,7 +152,13 @@ router.delete('/:id', async (req, res) => {
 
   try {
 
-    const id = Number(req.params.id)
+    const id = req.params.id
+
+    if (!id) {
+      return res.status(400).json({
+        message: 'id ต้องระบุ'
+      })
+    }
 
     await prisma.task.delete({
       where: { id }
