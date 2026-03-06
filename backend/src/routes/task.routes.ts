@@ -1,106 +1,177 @@
 // src/routes/task.routes.ts
-import { Router } from 'express';
-import { prisma } from '../prisma';
 
-const router = Router();
+import { Router } from 'express'
+import { prisma } from '../prisma'
 
-// CREATE
+const router = Router()
+
+/* ======================
+   CREATE
+====================== */
 router.post('/', async (req, res) => {
   try {
-    const { title, description } = req.body;
+    const { title, description } = req.body
+
     if (!title) {
-      return res.status(400).json({ message: 'กรุณาระบุ title' });
+      return res.status(400).json({
+        message: 'กรุณาระบุ title'
+      })
     }
 
     const task = await prisma.task.create({
-      data: { title, description },
-    });
+      data: {
+        title,
+        description
+      }
+    })
 
-    res.status(201).json({ data: task });
+    res.status(201).json({ data: task })
+
   } catch (err) {
-    console.error('CREATE error:', err);
-    res.status(500).json({ message: 'ไม่สามารถสร้างงานได้' });
-  }
-});
 
-// READ ALL
+    console.error('CREATE error:', err)
+
+    res.status(500).json({
+      message: 'ไม่สามารถสร้างงานได้'
+    })
+  }
+})
+
+
+/* ======================
+   READ ALL
+====================== */
 router.get('/', async (_req, res) => {
   try {
-    const tasks = await prisma.task.findMany({
-      orderBy: { createdAt: 'desc' },
-    });
 
-    res.json({ data: tasks });
+    const tasks = await prisma.task.findMany({
+      orderBy: {
+        createdAt: 'desc'
+      }
+    })
+
+    res.json({ data: tasks })
+
   } catch (err: any) {
-    console.error('READ ALL error:', err);
+
+    console.error('READ ALL error:', err)
+
     res.status(500).json({
       message: 'ไม่สามารถดึงรายการได้',
-      error: err.message,
-      code: err.code
-    });
+      error: err.message
+    })
   }
-});
+})
 
-// READ ONE
+
+/* ======================
+   READ ONE
+====================== */
 router.get('/:id', async (req, res) => {
   try {
+
+    const id = Number(req.params.id)
+
+    if (isNaN(id)) {
+      return res.status(400).json({
+        message: 'id ต้องเป็นตัวเลข'
+      })
+    }
+
     const task = await prisma.task.findUnique({
-      where: { id: req.params.id },
-    });
+      where: { id }
+    })
 
     if (!task) {
-      return res.status(404).json({ message: 'ไม่พบงาน' });
+      return res.status(404).json({
+        message: 'ไม่พบงาน'
+      })
     }
 
-    res.json({ data: task });
-  } catch (err) {
-    console.error('READ ONE error:', err);
-    res.status(500).json({ message: 'ไม่สามารถดึงข้อมูลได้' });
-  }
-});
+    res.json({ data: task })
 
-// UPDATE (PATCH)
+  } catch (err) {
+
+    console.error('READ ONE error:', err)
+
+    res.status(500).json({
+      message: 'ไม่สามารถดึงข้อมูลได้'
+    })
+  }
+})
+
+
+/* ======================
+   UPDATE
+====================== */
 router.patch('/:id', async (req, res) => {
+
   try {
-    const { title, description } = req.body;
+
+    const id = Number(req.params.id)
+    const { title, description } = req.body
 
     const task = await prisma.task.update({
-      where: { id: req.params.id },
+      where: { id },
       data: {
         ...(title && { title }),
-        ...(description !== undefined && { description }),
-      },
-    });
+        ...(description !== undefined && { description })
+      }
+    })
 
-    res.json({ data: task });
+    res.json({ data: task })
+
   } catch (err: any) {
-    console.error('UPDATE error:', err);
+
+    console.error('UPDATE error:', err)
 
     if (err.code === 'P2025') {
-      return res.status(404).json({ message: 'ไม่พบงานที่ต้องการอัปเดต' });
+      return res.status(404).json({
+        message: 'ไม่พบงานที่ต้องการอัปเดต'
+      })
     }
 
-    res.status(500).json({ message: 'ไม่สามารถอัปเดตได้' });
+    res.status(500).json({
+      message: 'ไม่สามารถอัปเดตได้'
+    })
   }
-});
 
-// DELETE
+})
+
+
+/* ======================
+   DELETE
+====================== */
 router.delete('/:id', async (req, res) => {
-  try {
-    await prisma.task.delete({
-      where: { id: req.params.id },
-    });
 
-    res.json({ message: 'ลบงานสำเร็จ' });
+  try {
+
+    const id = Number(req.params.id)
+
+    await prisma.task.delete({
+      where: { id }
+    })
+
+    res.json({
+      message: 'ลบงานสำเร็จ'
+    })
+
   } catch (err: any) {
-    console.error('DELETE error:', err);
+
+    console.error('DELETE error:', err)
 
     if (err.code === 'P2025') {
-      return res.status(404).json({ message: 'ไม่พบงานที่ต้องการลบ' });
+      return res.status(404).json({
+        message: 'ไม่พบงานที่ต้องการลบ'
+      })
     }
 
-    res.status(500).json({ message: 'ไม่สามารถลบได้' });
+    res.status(500).json({
+      message: 'ไม่สามารถลบได้'
+    })
   }
-});
 
-export default router;
+})
+
+
+export default router
