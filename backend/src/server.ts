@@ -45,14 +45,15 @@ app.get('/api/demo', (req, res) => {
 });
 
 // health check root
-app.get('/api/health', (req, res) => {
-  res.json({ ok: true })
+app.get('/', (_req, res) => {
+  res.json({
+    message: 'API พร้อมใช้งาน (Supabase + Prisma + Quasar Frontend)',
+    timestamp: new Date().toISOString(),
+  });
 });
 
 // simple health endpoint used by assignment grading
-app.get('/api/health', (_req, res) => {
-  res.json({ ok: true });
-});
+app.get('/api/health', (req, res) => { res.json({ ok: true }) })
 
 // Task API (Lab 2.1)
 app.use('/api/tasks', taskRoutes);
