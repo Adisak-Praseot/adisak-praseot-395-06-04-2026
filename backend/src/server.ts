@@ -14,21 +14,50 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+/* =========================
+   CORS CONFIG (แก้ปัญหา Netlify)
+========================= */
+const corsOptions = {
+  origin: [
+    'https://adisak-praseot-395-06-04-2026.netlify.app',
+    'http://localhost:9000',
+    'http://localhost:5173'
+  ],
+  methods: ['GET','POST','PUT','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization'],
+  credentials: true
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
+
+/* =========================
+   Middleware
+========================= */
 app.use(helmet());
 app.use(morgan('dev'));
 app.use(express.json());
 
-// === logs dir (ต่อยอดจาก Lab 1.2) ===
+/* =========================
+   Logs directory
+========================= */
 const logsDir = path.join(__dirname, '../logs');
+
 if (!fs.existsSync(logsDir)) {
   fs.mkdirSync(logsDir, { recursive: true });
 }
 
-// demo endpoint เดิมจาก Lab 1.2
+/* =========================
+   Demo Endpoint
+========================= */
 app.get('/api/demo', (req, res) => {
-  const logMessage = `Request at ${new Date().toISOString()}: ${req.ip}\n`;
-  fs.appendFileSync(path.join(logsDir, 'access.log'), logMessage);
+
+  const logMessage = `Request at ${new Date().toISOString()} : ${req.ip}\n`;
+
+  fs.appendFileSync(
+    path.join(logsDir, 'access.log'),
+    logMessage
+  );
 
   res.json({
     git: {
@@ -44,7 +73,9 @@ app.get('/api/demo', (req, res) => {
   });
 });
 
-// health check root
+/* =========================
+   Root Endpoint
+========================= */
 app.get('/', (_req, res) => {
   res.json({
     message: 'API พร้อมใช้งาน (Supabase + Prisma + Quasar Frontend)',
@@ -52,13 +83,21 @@ app.get('/', (_req, res) => {
   });
 });
 
-// simple health endpoint used by assignment grading
-app.get('/api/health', (req, res) => { res.json({ ok: true }) })
+/* =========================
+   Health Check
+========================= */
+app.get('/api/health', (_req, res) => {
+  res.json({ ok: true });
+});
 
-// Task API (Lab 2.1)
+/* =========================
+   Task API
+========================= */
 app.use('/api/tasks', taskRoutes);
 
-// ✅ fallback 404 สำหรับทุก route ที่ไม่ match
+/* =========================
+   404 Handler
+========================= */
 app.use((req, res) => {
   res.status(404).json({
     message: 'ไม่พบเส้นทาง',
@@ -66,6 +105,9 @@ app.use((req, res) => {
   });
 });
 
+/* =========================
+   Start Server
+========================= */
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
